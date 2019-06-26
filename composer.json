@@ -35,5 +35,6 @@
         "psr-4": {
             "Watcher\\Test\\": "tests/"
         }
-    }
+    },
+    "bin": ["bin/watch-phpunit"]
 }
