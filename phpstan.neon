@@ -1,0 +1,10 @@
+includes:
+	- vendor/phpstan/phpstan/conf/bleedingEdge.neon
+	- vendor/phpstan/phpstan/conf/config.levelmax.neon
+
+parameters:
+	paths:
+		- bin
+		- src
+		- tests
+	tmpDir: %currentWorkingDirectory%/.build

@@ -1,0 +1,7 @@
+.idea/
+
+/vendor/
+composer.lock
+
+#This needs to go somewhere else
+phpunit.tmp.xml.dist
