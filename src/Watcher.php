@@ -34,7 +34,7 @@ class Watcher
      */
     public function getAllWatchedFiles() : array
     {
-        return array_values(array_flip($this->fileCache));
+        return array_keys($this->fileCache);
     }
 
     /**
