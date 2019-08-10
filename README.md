@@ -1,20 +1,17 @@
 # Watch Phpunit
 
+## Installation
+
+```
+composer require backendtea/watch-phpunit --dev
+```
 ## What is this
 The intention of this application is to 'watch' for file changes, 
-and run the tests related to those files.
+and run the tests related to files that have been changed since the last git commit.
+This does mean that in its current form it needs to be in a git repository.
 
-In its current implementation it does so very naively. 
-The app can be ran with two options, the source folder to watch, and the test folder.
-If any of the files in these folder change it will attempt to run the tests.
-
-If the file is in the test folder it will simply run phpunit with that test.
-If the file is int he source folder, then it will look for the file as follows:
-
-```diff
-+ src/Folder/FileThatChanged.php
-- tests/Folder/FileThatChangedTest.php
-```
+It figures out what classes depend on each other, and then runs the tests related to the 
+changed files.
 
 
 ## Usage
