@@ -19,7 +19,7 @@ class FunctionTest extends TestCase
         $this->assertSame($expected, endsWith($value, $suffix));
     }
 
-    public function providesEndsWithCases(): Generator
+    public function providesEndsWithCases() : Generator
     {
         yield ['foo', 'o', true];
 
@@ -31,12 +31,12 @@ class FunctionTest extends TestCase
     /**
      * @dataProvider providesStartsWithCases
      */
-    public function testStartsWith(string $value, string $prefix, bool $expected): void
+    public function testStartsWith(string $value, string $prefix, bool $expected) : void
     {
         $this->assertSame($expected, startsWith($value, $prefix));
     }
 
-    public function providesStartsWithCases(): Generator
+    public function providesStartsWithCases() : Generator
     {
         yield ['foo', 'o', false];
 
