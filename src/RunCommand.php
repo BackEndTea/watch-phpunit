@@ -74,7 +74,7 @@ final class RunCommand extends Command
             }
             $changedFiles = array_map('realpath', $watcher->getChangedFilesSinceLastCommit());
             $dependencyFinder->reBuild($changedFiles);
-            $changedFiles = $dependencyFinder->getAllFilesDependingOnFiles($changedFiles);
+            $changedFiles = $dependencyFinder->getAllFilesDependingOn($changedFiles);
             $changedFiles = array_filter($changedFiles, static function (string $fileName) use ($test) {
                 return startsWith($fileName, $test);
             });
@@ -84,7 +84,7 @@ final class RunCommand extends Command
             if ($changedFiles !== []) {
                 $this->addTestSuiteWithFilteredTestFiles($changedFiles, $dom, $xPath);
                 file_put_contents('./phpunit.tmp.xml.dist', $dom->saveXML());
-                file_put_contents('./.phpunit.tmp.xml.dist', $dom->saveXML());
+
                 $p = new Process([
                     'vendor/bin/phpunit',
                     '--configuration=' . realpath('./phpunit.tmp.xml.dist'),
@@ -142,15 +142,5 @@ final class RunCommand extends Command
         assert($nodeToAppendTestSuite instanceof DOMNode);
 
         $nodeToAppendTestSuite->appendChild($testSuite);
-    }
-
-    private function replaceFirstCharactersWith(string $string, string $remove, string $prepend) : string
-    {
-        return $prepend . substr($string, strlen($remove));
-    }
-
-    private function replaceLastCharactersWith(string $string, string $remove, string $append) : string
-    {
-        return substr($string, 0, - strlen($remove)) . $append;
     }
 }
