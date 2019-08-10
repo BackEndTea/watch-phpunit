@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Watcher;
 
+use Depend\DependencyFinder;
 use DOMDocument;
 use DOMNode;
 use DOMXPath;
@@ -12,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
+use function array_filter;
 use function array_map;
 use function assert;
 use function copy;
@@ -20,7 +22,6 @@ use function getcwd;
 use function is_string;
 use function realpath;
 use function strlen;
-use function strpos;
 use function substr;
 use function usleep;
 
@@ -48,55 +49,49 @@ final class RunCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output) : int
     {
-        $src = $input->getOption('src');
+        $src = realpath($input->getOption('src'));
         assert(is_string($src));
-        $test = $input->getOption('test');
+        $test = realpath($input->getOption('test'));
         assert(is_string($test));
-        $watcher = new Watcher([
-            $src,
-            $test,
-        ]);
+        $dependencyFinder = new DependencyFinder([$src, $test]);
+        $dependencyFinder->build();
+
+        $watcher = new Watcher([$src, $test]);
+
         copy('./phpunit.xml.dist', getcwd() . '/phpunit.tmp.xml.dist');
+
         $dom = new DOMDocument();
         $dom->load('./phpunit.tmp.xml.dist');
         $xPath = new DOMXPath($dom);
+
         $this->removeExistingTestSuite($xPath);
         file_put_contents('./phpunit.tmp.xml.dist', $dom->saveXML());
 
         while (true) {
-            $changedFiles = $watcher->getChangedFiles();
+            if (! $watcher->hasChangedFiles()) {
+                usleep(1000000);
+                continue;
+            }
+            $changedFiles = array_map('realpath', $watcher->getChangedFilesSinceLastCommit());
+            $dependencyFinder->reBuild($changedFiles);
+            $changedFiles = $dependencyFinder->getAllFilesDependingOnFiles($changedFiles);
+            $changedFiles = array_filter($changedFiles, static function (string $fileName) use ($test) {
+                return startsWith($fileName, $test);
+            });
             foreach ($changedFiles as $change) {
                 $output->writeln('File Changed: ' . $change);
             }
             if ($changedFiles !== []) {
-                $changedFiles = array_map(function ($filePath) use ($src, $test) : string {
-                    if ($this->stringStartsWith($filePath, $src)) {
-                        return $this->replaceLastCharactersWith(
-                            $this->replaceFirstCharactersWith($filePath, $src, $test),
-                            '.php',
-                            'Test.php'
-                        );
-                    }
-
-                    return $filePath;
-                }, $changedFiles);
-                foreach ($changedFiles as $change) {
-                    $output->writeln('Running Test: ' . $change);
-                }
                 $this->addTestSuiteWithFilteredTestFiles($changedFiles, $dom, $xPath);
                 file_put_contents('./phpunit.tmp.xml.dist', $dom->saveXML());
+                file_put_contents('./.phpunit.tmp.xml.dist', $dom->saveXML());
                 $p = new Process([
                     'vendor/bin/phpunit',
                     '--configuration=' . realpath('./phpunit.tmp.xml.dist'),
                 ]);
-                $p->start(static function (string $type, string $buffer) use ($output) : void {
-                    $output->write($buffer);
-                });
-                while ($p->isRunning()) {
-                    usleep(100000);
-                }
+                $p->run();
+                $output->write($p->getOutput());
 
-                $output->writeln($p->getOutput());
                 $this->removeExistingTestSuite($xPath);
                 file_put_contents('./phpunit.tmp.xml.dist', $dom->saveXML());
             }
@@ -147,11 +142,6 @@ final class RunCommand extends Command
         assert($nodeToAppendTestSuite instanceof DOMNode);
 
         $nodeToAppendTestSuite->appendChild($testSuite);
-    }
-
-    private function stringStartsWith(string $string, string $starts) : bool
-    {
-        return strpos($string, $starts) === 0;
     }
 
     private function replaceFirstCharactersWith(string $string, string $remove, string $prepend) : string

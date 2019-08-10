@@ -11,6 +11,7 @@
     ],
     "require": {
         "php": "^7.2",
+        "backendtea/dependency-finder": "^0.0.1",
         "symfony/console": "^4.3",
         "symfony/finder": "^4.3",
         "symfony/process": "^4.3"
@@ -29,7 +30,8 @@
     "autoload": {
         "psr-4": {
             "Watcher\\": "src/"
-        }
+        },
+        "files": ["src/functions.php"]
     },
     "autoload-dev": {
         "psr-4": {

@@ -6,9 +6,15 @@ namespace Watcher;
 
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Process\Process;
+use function array_filter;
 use function array_flip;
 use function array_key_exists;
 use function array_values;
+use function count;
+use function explode;
+use function realpath;
+use function trim;
 
 class Watcher
 {
@@ -37,14 +43,40 @@ class Watcher
         return array_values(array_flip($this->fileCache));
     }
 
+    public function getChangedFilesSinceLastCommit() : array
+    {
+        $process = Process::fromShellCommandline('git diff HEAD --name-only | paste -sd "," -');
+        $process->run();
+
+        return array_filter(
+            explode(',', trim($process->getOutput())),
+            function (string $fileName) {
+                $full = realpath($fileName);
+
+                if ($full === false) {
+                    return false;
+                }
+                if (! endsWith($fileName, '.php')) {
+                    return false;
+                }
+
+                foreach ($this->folders as $folder) {
+                    if (startsWith($full, $folder)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        );
+    }
+
     /**
      * Retrieves all the files that have changed since the last time we checked.
      * This also updates the local cache, so each time this is reevaluated.
      * It does not return deleted items.
-     *
-     * @return array<int,string> list of changed files
      */
-    public function getChangedFiles() : array
+    public function hasChangedFiles() : bool
     {
         $oldFileList = $this->fileCache;
 
@@ -66,7 +98,7 @@ class Watcher
         }
         $this->fileCache = $newFullFileList;
 
-        return $changedFileList;
+        return count($changedFileList) !== 0;
     }
 
     /**
