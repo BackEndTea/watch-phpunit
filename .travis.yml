@@ -14,7 +14,7 @@ install:
   - composer update $COMPOSER_FLAGS
 
 script:
-  - vendor/bin/phpcs
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]]; then  vendor/bin/phpcs; fi
   - vendor/bin/phpstan analyse
   - vendor/bin/psalm
   - vendor/bin/phpunit
