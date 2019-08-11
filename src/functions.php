@@ -8,12 +8,12 @@ use function strlen;
 use function strpos;
 use function substr;
 
-function endsWith($value, $suffix) : bool
+function endsWith(string $value, string $suffix) : bool
 {
     return $suffix === substr($value, -strlen($suffix));
 }
 
-function startsWith($value, $prefix) : bool
+function startsWith(string $value, string $prefix) : bool
 {
     return strpos($value, $prefix) === 0;
 }

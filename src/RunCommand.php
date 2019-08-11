@@ -21,8 +21,6 @@ use function file_put_contents;
 use function getcwd;
 use function is_string;
 use function realpath;
-use function strlen;
-use function substr;
 use function usleep;
 
 final class RunCommand extends Command
@@ -49,9 +47,13 @@ final class RunCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output) : int
     {
-        $src = realpath($input->getOption('src'));
+        $src = $input->getOption('src');
         assert(is_string($src));
-        $test = realpath($input->getOption('test'));
+        $src = realpath($src);
+        assert(is_string($src));
+        $test = $input->getOption('test');
+        assert(is_string($test));
+        $test = realpath($test);
         assert(is_string($test));
         $dependencyFinder = new DependencyFinder([$src, $test]);
         $dependencyFinder->build();
@@ -72,7 +74,7 @@ final class RunCommand extends Command
                 usleep(1000000);
                 continue;
             }
-            $changedFiles = array_map('realpath', $watcher->getChangedFilesSinceLastCommit());
+            $changedFiles = array_filter(array_map('realpath', $watcher->getChangedFilesSinceLastCommit()));
             $dependencyFinder->reBuild($changedFiles);
             $changedFiles = $dependencyFinder->getAllFilesDependingOn($changedFiles);
             $changedFiles = array_filter($changedFiles, static function (string $fileName) use ($test) {
@@ -118,7 +120,7 @@ final class RunCommand extends Command
     }
 
     /**
-     * @param array<int, string> $tests
+     * @param array<string> $tests
      */
     private function addTestSuiteWithFilteredTestFiles(array $tests, DOMDocument $dom, DOMXPath $xPath) : void
     {

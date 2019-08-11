@@ -17,14 +17,14 @@ use function trim;
 
 class Watcher
 {
-    /** @var array<int, string> */
+    /** @var array<string> */
     private $folders;
 
     /** @var array<string, int> */
     private $fileCache = [];
 
     /**
-     * @param array<int, string> $folders
+     * @param array<string> $folders
      */
     public function __construct(array $folders)
     {
@@ -42,8 +42,12 @@ class Watcher
         return array_keys($this->fileCache);
     }
 
+    /**
+     * @return array<string>
+     */
     public function getChangedFilesSinceLastCommit() : array
     {
+        /** @var Process $process */
         $process = Process::fromShellCommandline('git diff HEAD --name-only | paste -sd "," -');
         $process->run();
 

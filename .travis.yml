@@ -1,0 +1,24 @@
+language: php
+
+php:
+  - 7.2
+  - 7.3
+  - 7.4snapshot
+  - nightly
+before_install:
+  - phpenv config-rm xdebug.ini || true;
+
+install:
+  - export COMPOSER_FLAGS="--prefer-dist --no-interaction"
+  - if [[ $TRAVIS_PHP_VERSION = nightly ]]; then export COMPOSER_FLAGS="$COMOPSER_FLAGS --ignore-platform-reqs"; fi
+  - composer update $COMPOSER_FLAGS
+
+script:
+  - vendor/bin/phpcs
+  - vendor/bin/phpstan analyse
+  - vendor/bin/psalm
+  - vendor/bin/phpunit
+
+matrix:
+  allow_failures:
+    php: nightly

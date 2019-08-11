@@ -16,6 +16,7 @@
 
     <issueHandlers>
         <LessSpecificReturnType errorLevel="info" />
-        <PropertyNotSetInConstructor errorLevel="info" />
+        <PropertyNotSetInConstructor errorLevel="suppress" />
+        <InternalMethod errorLevel="suppress" />
     </issueHandlers>
 </psalm>
