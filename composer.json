@@ -14,7 +14,6 @@
         "ext-dom": "*",
         "backendtea/dependency-finder": "^0.0.2",
         "symfony/console": "^4.3",
-        "symfony/finder": "^4.3",
         "symfony/process": "^4.3"
     },
     "require-dev": {

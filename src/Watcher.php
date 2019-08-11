@@ -48,11 +48,17 @@ class Watcher
     public function getChangedFilesSinceLastCommit() : array
     {
         /** @var Process $process */
-        $process = Process::fromShellCommandline('git diff HEAD --name-only | paste -sd "," -');
+        $process = new Process([
+            'git',
+            'diff',
+            'HEAD',
+            '--name-only',
+        ]);
+
         $process->run();
 
         return array_filter(
-            explode(',', trim($process->getOutput())),
+            explode("\n", trim($process->getOutput())),
             function (string $fileName) {
                 $full = realpath($fileName);
 
@@ -75,9 +81,7 @@ class Watcher
     }
 
     /**
-     * Retrieves all the files that have changed since the last time we checked.
-     * This also updates the local cache, so each time this is reevaluated.
-     * It does not return deleted items.
+     * Determines if any files have changed since the last time this function was called.
      */
     public function hasChangedFiles() : bool
     {
