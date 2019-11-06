@@ -24,6 +24,6 @@ use Watcher\RunCommand;
     $application = new Application();
     $command     = new RunCommand();
     $application->add($command);
-    $application->setDefaultCommand($command->getName());
+    $application->setDefaultCommand('watch');
     $application->run();
 })();
